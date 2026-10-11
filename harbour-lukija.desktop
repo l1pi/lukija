@@ -1,0 +1,15 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=harbour-lukija
+Exec=harbour-lukija %f
+Name=Lukija
+Comment=Reads PDF files aloud
+Comment[fi]=Lukee PDF-tiedostot ääneen
+MimeType=application/pdf;
+
+[X-Sailjail]
+# Must match OrganizationName / ApplicationName in core/appinfo.h.
+OrganizationName=io.github.l1pi
+ApplicationName=harbour-lukija
+Permissions=Audio;Documents;Downloads;RemovableMedia;Internet

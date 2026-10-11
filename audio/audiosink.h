@@ -28,6 +28,13 @@ public:
 
     bool start(QString *error = nullptr);
     void stop();
+    // Drops all queued audio, including what the device has buffered, and
+    // starts a new stream: for seeking.
+    bool restart(QString *error = nullptr);
+
+    void pause();
+    void resume();
+    bool isPaused() const { return m_paused; }
 
     void enqueue(int sentence, const QVector<float> &samples, int sampleRate, int pauseAfterMs);
     void finish();  // nothing more will be enqueued; finished() follows once it has played
@@ -65,6 +72,7 @@ private:
     int m_current = -1;
     bool m_finishing = false;
     bool m_finishedEmitted = false;
+    bool m_paused = false;
 };
 
 } // namespace lukija

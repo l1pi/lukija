@@ -1,5 +1,6 @@
 #include "piperengine.h"
 
+#include <QCoreApplication>
 #include <QDir>
 #include <QFile>
 #include <QJsonDocument>
@@ -25,6 +26,15 @@ QString PiperEngine::defaultEspeakDataPath()
     const QByteArray fromEnvironment = qgetenv("LUKIJA_ESPEAK_DATA");
     if (!fromEnvironment.isEmpty())
         return QFile::decodeName(fromEnvironment);
+#ifdef LUKIJA_INSTALLED_ESPEAK_DATA
+    if (QCoreApplication::instance()) {
+        const QString installed = QDir::cleanPath(QCoreApplication::applicationDirPath()
+                                                  + QLatin1Char('/')
+                                                  + QStringLiteral(LUKIJA_INSTALLED_ESPEAK_DATA));
+        if (QDir(installed).exists())
+            return installed;
+    }
+#endif
 #ifdef LUKIJA_PIPER_ESPEAK_DATA
     return QStringLiteral(LUKIJA_PIPER_ESPEAK_DATA);
 #else
@@ -32,8 +42,16 @@ QString PiperEngine::defaultEspeakDataPath()
 #endif
 }
 
+void PiperEngine::setThreadCount(int threads)
+{
+    qputenv("LUKIJA_PIPER_THREADS", QByteArray::number(qMax(1, threads)));
+}
+
 bool PiperEngine::load(const VoiceInfo &voice, QString *error)
 {
+    if (qgetenv("LUKIJA_PIPER_THREADS").isEmpty())
+        setThreadCount(DefaultThreadCount);
+
     if (m_synth) {
         piper_free(m_synth);
         m_synth = nullptr;

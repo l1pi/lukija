@@ -21,9 +21,15 @@ public:
     bool synthesize(const QString &text, const SynthOptions &options, QVector<float> *pcm,
                     const std::atomic<bool> &cancel) override;
 
-    // $LUKIJA_ESPEAK_DATA if set, otherwise the espeak-ng-data that the build
-    // installed next to libpiper.
+    // $LUKIJA_ESPEAK_DATA if set, then the espeak-ng-data installed with the
+    // app, then the one in the build tree.
     static QString defaultEspeakDataPath();
+
+    // onnxruntime threads for voices loaded from now on ($LUKIJA_PIPER_THREADS,
+    // read by our patched libpiper). The default is 2: on the Jolla Phone that
+    // nearly halves synthesis time for 12% more CPU time (docs/spikes.md).
+    static void setThreadCount(int threads);
+    static constexpr int DefaultThreadCount = 2;
 
 private:
     piper_synthesizer *m_synth = nullptr;

@@ -3,6 +3,7 @@
 add_library(lukija-core STATIC
     appinfo.h
     model/document.h model/document.cpp
+    model/serialization.h model/serialization.cpp
     pdf/pdfdocument.h pdf/pdfdocument.cpp
     pdf/textextractor.h pdf/textextractor.cpp
     layout/layoutanalyzer.h layout/layoutanalyzer.cpp

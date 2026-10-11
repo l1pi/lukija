@@ -63,6 +63,31 @@ void AudioSink::stop()
     }
     if (isOpen())
         close();
+    m_paused = false;
+}
+
+bool AudioSink::restart(QString *error)
+{
+    stop();
+    clear();
+    m_samplesRead = 0;
+    return start(error);
+}
+
+void AudioSink::pause()
+{
+    if (m_output && !m_paused) {
+        m_output->suspend();
+        m_paused = true;
+    }
+}
+
+void AudioSink::resume()
+{
+    if (m_output && m_paused) {
+        m_output->resume();
+        m_paused = false;
+    }
 }
 
 void AudioSink::enqueue(int sentence, const QVector<float> &samples, int sampleRate, int pauseAfterMs)

@@ -190,6 +190,14 @@ ReadingDocument Pipeline::run(std::vector<PageText> pages, const PipelineOptions
     return document;
 }
 
+bool Pipeline::hasTextLayer(const std::vector<PageText> &pages)
+{
+    size_t words = 0;
+    for (const PageText &page : pages)
+        words += page.words.size();
+    return words > 0 && words >= 5 * pages.size();
+}
+
 bool Pipeline::readPdf(const QString &path, ReadingDocument *document, QString *errorMessage,
                        const PipelineOptions &options)
 {
@@ -201,7 +209,14 @@ bool Pipeline::readPdf(const QString &path, ReadingDocument *document, QString *
         return false;
     }
 
-    *document = run(pdf->allPageText(), options);
+    std::vector<PageText> pages = pdf->allPageText();
+    if (!hasTextLayer(pages)) {
+        if (errorMessage)
+            *errorMessage = QStringLiteral("This PDF has no text layer. Scanned PDFs aren't supported yet.");
+        return false;
+    }
+
+    *document = run(std::move(pages), options);
     document->title = pdf->title();
     if (document->title.isEmpty())
         document->title = QFileInfo(path).completeBaseName();

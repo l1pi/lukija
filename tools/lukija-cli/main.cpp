@@ -2,6 +2,7 @@
 
 #include "appinfo.h"
 #include "pipeline.h"
+#include "playbackcontroller.h"
 #include "speaker.h"
 #include "voicelibrary.h"
 
@@ -121,8 +122,11 @@ int speak(const ReadingDocument &document, const QCommandLineParser &parser)
     bool ok = true;
     if (parser.isSet(QStringLiteral("speed")))
         options.speed = parser.value(QStringLiteral("speed")).toFloat(&ok);
-    if (!ok || options.speed < 0.25f || options.speed > 4.0f)
-        return fail(QStringLiteral("--speed must be between 0.25 and 4"));
+    if (!ok || options.speed < PlaybackController::MinimumSpeed
+        || options.speed > PlaybackController::MaximumSpeed)
+        return fail(QStringLiteral("--speed must be between %1 and %2")
+                        .arg(PlaybackController::MinimumSpeed)
+                        .arg(PlaybackController::MaximumSpeed));
     if (parser.isSet(QStringLiteral("from")))
         options.first = parser.value(QStringLiteral("from")).toInt();
     if (parser.isSet(QStringLiteral("page"))) {
@@ -140,25 +144,43 @@ int speak(const ReadingDocument &document, const QCommandLineParser &parser)
     if (options.first < 0 || options.first >= options.end)
         return fail(QStringLiteral("nothing to read in that range"));
 
-    std::unique_ptr<PiperEngine> engine(new PiperEngine());
-    QString error;
-    if (!engine->load(voice, &error))
-        return fail(error);
     err() << "Voice: " << voice.id << ", sentences " << options.first << "-" << options.end - 1
           << " of " << document.sentences.size() << '\n';
     err().flush();
 
     if (parser.isSet(QStringLiteral("output"))) {
-        if (!speakToWav(document, *engine, options, parser.value(QStringLiteral("output")), &error))
+        PiperEngine engine;
+        QString error;
+        if (!engine.load(voice, &error)
+            || !speakToWav(document, engine, options, parser.value(QStringLiteral("output")), &error))
             return fail(error);
         return 0;
     }
 
-    Player player(document, std::move(engine), options);
-    QObject::connect(&player, &Player::finished, qApp, [](bool ok) { qApp->exit(ok ? 0 : 1); });
-    if (!player.start(&error))
-        return fail(error);
-    return qApp->exec();
+    // The same playback as in the app, stopping after the requested range.
+    PlaybackController player;
+    player.setVoice(voice);
+    player.setSpeed(options.speed);
+    player.setDocument(std::make_shared<const ReadingDocument>(document), options.first);
+    QObject::connect(&player, &PlaybackController::currentSentenceChanged, qApp, [&]() {
+        const int current = player.currentSentence();
+        if (current >= options.end)
+            qApp->exit(0);
+        else
+            printSentence(current, document.sentences[size_t(current)]);
+    });
+    QObject::connect(&player, &PlaybackController::finished, qApp, []() { qApp->exit(0); });
+    QObject::connect(&player, &PlaybackController::errorStringChanged, qApp, [&player]() {
+        if (!player.errorString().isEmpty()) {
+            fail(player.errorString());
+            qApp->exit(1);
+        }
+    });
+    printSentence(options.first, document.sentences[size_t(options.first)]);
+    player.play();
+    const int status = qApp->exec();
+    printSummary(player.synthesisMs(), player.synthesisedSeconds());
+    return status;
 #else
     Q_UNUSED(document)
     Q_UNUSED(parser)
