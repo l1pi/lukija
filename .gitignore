@@ -1,0 +1,4 @@
+/build*/
+/tests/corpus/pdfs/
+CMakeLists.txt.user*
+*.autosave
