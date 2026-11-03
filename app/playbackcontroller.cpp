@@ -1,8 +1,7 @@
 #include "playbackcontroller.h"
 
+#include "appsettings.h"
 #include "voicelibrary.h"
-
-#include <QSettings>
 
 namespace lukija {
 
@@ -308,7 +307,7 @@ VoiceInfo PlaybackController::voiceFor(const Sentence &sentence)
     // The user's choice, then the default voice, then any voice for the
     // language, then any voice at all.
     VoiceInfo voice;
-    const QString chosen = QSettings().value(QStringLiteral("voices/") + language).toString();
+    const QString chosen = AppSettings().value(QStringLiteral("voices/") + language).toString();
     if (!chosen.isEmpty())
         voice = VoiceLibrary::find(chosen);
     if (!voice.isValid())

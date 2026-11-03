@@ -1,4 +1,5 @@
 #include "appinfo.h"
+#include "audioroutemonitor.h"
 #include "library.h"
 #include "librarymodel.h"
 #include "reader.h"
@@ -30,6 +31,13 @@ int main(int argc, char *argv[])
     Reader reader(&library);
     QObject::connect(&reader, &Reader::opened, &libraryModel, &LibraryModel::refresh);
     QObject::connect(app.data(), &QCoreApplication::aboutToQuit, &reader, &Reader::savePosition);
+
+    // Stop when headphones or Bluetooth audio go away, rather than carrying on
+    // through the phone's speaker.
+    AudioRouteMonitor audioRoutes;
+    QObject::connect(&audioRoutes, &AudioRouteMonitor::accessoryLost, reader.player(),
+                     &PlaybackController::pause);
+    audioRoutes.start();
 
     // A PDF passed on the command line, e.g. through "Open with" in another app.
     QString initialFile;

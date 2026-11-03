@@ -8,7 +8,24 @@ Page {
     readonly property QtObject player: reader.player
     readonly property bool ready: reader.status === Reader.Ready
 
+    // Jumps there, instead of scrolling through everything before it.
+    function showCurrentSentence() {
+        list.positionViewAtIndex(player.currentSentence, ListView.Center)
+    }
+
     allowedOrientations: Orientation.All
+
+    // The document was already open.
+    onStatusChanged: {
+        if (status === PageStatus.Activating && ready)
+            showCurrentSentence()
+    }
+
+    // The document finished loading after this page opened.
+    Connections {
+        target: reader
+        onOpened: page.showCurrentSentence()
+    }
 
     SilicaListView {
         id: list
@@ -18,7 +35,9 @@ Page {
             bottomMargin: panel.visibleSize
         }
         clip: true
-        model: page.ready ? reader.sentences : null
+        // Always this model, empty until the document loads: assigning a model
+        // later would reset currentIndex to 0 and leave the binding below stale.
+        model: reader.sentences
 
         // Keep the sentence being read in view. The list follows playback
         // except while the user is scrolling.
@@ -27,6 +46,13 @@ Page {
         preferredHighlightBegin: height * 0.2
         preferredHighlightEnd: height * 0.6
         highlightMoveDuration: 500
+
+        // The panel below opens after the list has been positioned, and could
+        // cover the last sentences. Turning the phone changes the height too.
+        onHeightChanged: {
+            if (!moving)
+                positionViewAtIndex(player.currentSentence, ListView.Contain)
+        }
 
         header: PageHeader {
             title: reader.title

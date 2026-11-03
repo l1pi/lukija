@@ -1,5 +1,6 @@
 #include "reader.h"
 
+#include "appsettings.h"
 #include "pipeline.h"
 
 #include <QFileInfo>
@@ -8,11 +9,23 @@
 
 namespace lukija {
 
+namespace {
+
+const QString SpeedKey = QStringLiteral("playback/speed");
+
+} // namespace
+
 Reader::Reader(Library *library, QObject *parent)
     : QObject(parent)
     , m_library(library)
 {
     connect(&m_watcher, &QFutureWatcher<LoadResult>::finished, this, &Reader::onLoaded);
+
+    // The speed is the user's preference, for every document and every run.
+    m_player.setSpeed(AppSettings().value(SpeedKey, m_player.speed()).toReal());
+    connect(&m_player, &PlaybackController::speedChanged, this, [this]() {
+        AppSettings().setValue(SpeedKey, m_player.speed());
+    });
 
     // Save a few seconds after the position changes, and at once on pause.
     m_saveTimer.setSingleShot(true);

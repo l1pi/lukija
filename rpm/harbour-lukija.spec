@@ -1,7 +1,7 @@
 Name:       harbour-lukija
 Summary:    Reads PDF files aloud
 Version:    0.1.0
-Release:    1
+Release:    2
 License:    GPL-3.0-or-later
 URL:        https://github.com/l1pi/lukija
 Source0:    %{name}-%{version}.tar.bz2
@@ -27,6 +27,7 @@ BuildRequires:  pkgconfig(Qt5Quick)
 BuildRequires:  pkgconfig(Qt5Multimedia)
 BuildRequires:  pkgconfig(Qt5Sql)
 BuildRequires:  pkgconfig(Qt5Concurrent)
+BuildRequires:  pkgconfig(Qt5DBus)
 BuildRequires:  pkgconfig(poppler-qt5)
 # For %%check: the tests run on Qt 5.6, catching use of newer Qt APIs.
 BuildRequires:  pkgconfig(Qt5Test)
