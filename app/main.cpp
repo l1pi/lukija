@@ -3,7 +3,7 @@
 #include "library.h"
 #include "librarymodel.h"
 #include "reader.h"
-#include "voicelibrary.h"
+#include "voicesmodel.h"
 
 #include <sailfishapp.h>
 
@@ -40,6 +40,10 @@ int main(int argc, char *argv[])
                      &PlaybackController::pause);
     audioRoutes.start();
 
+    VoicesModel voices;
+    QObject::connect(&voices, &VoicesModel::voicesChanged, reader.player(),
+                     &PlaybackController::reloadVoices);
+
     // A PDF passed on the command line, e.g. through "Open with" in another app.
     QString initialFile;
     const QStringList arguments = app->arguments();
@@ -54,7 +58,7 @@ int main(int argc, char *argv[])
     context->setContextProperty(QStringLiteral("library"), &libraryModel);
     context->setContextProperty(QStringLiteral("reader"), &reader);
     context->setContextProperty(QStringLiteral("initialFile"), initialFile);
-    context->setContextProperty(QStringLiteral("voicesDirectory"), VoiceLibrary::voicesDirectory());
+    context->setContextProperty(QStringLiteral("voices"), &voices);
     view->setSource(SailfishApp::pathToMainQml());
     view->show();
     return app->exec();

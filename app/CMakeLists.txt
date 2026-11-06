@@ -1,5 +1,5 @@
 # The app's logic, without Sailfish dependencies: builds and tests on desktop.
-find_package(Qt5 5.6 REQUIRED COMPONENTS Concurrent DBus Sql)
+find_package(Qt5 5.6 REQUIRED COMPONENTS Concurrent DBus Network Sql)
 
 add_library(lukija-app STATIC
     appsettings.h
@@ -9,10 +9,12 @@ add_library(lukija-app STATIC
     sentencemodel.h sentencemodel.cpp
     librarymodel.h librarymodel.cpp
     reader.h reader.cpp
+    voicedownloader.h voicedownloader.cpp
+    voicesmodel.h voicesmodel.cpp
 )
 target_include_directories(lukija-app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(lukija-app PUBLIC lukija-core lukija-audio lukija-tts
-                      Qt5::Concurrent Qt5::DBus Qt5::Sql)
+                      Qt5::Concurrent Qt5::DBus Qt5::Network Qt5::Sql)
 
 if(NOT LUKIJA_BUILD_APP)
     return()

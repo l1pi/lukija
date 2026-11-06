@@ -28,11 +28,11 @@ QList<VoiceInfo> VoiceLibrary::installedVoices(const QString &directory)
     return voices;
 }
 
-VoiceInfo VoiceLibrary::find(const QString &idOrPath)
+VoiceInfo VoiceLibrary::find(const QString &idOrPath, const QString &directory)
 {
     if (idOrPath.endsWith(QLatin1String(".onnx")))
         return fromModelPath(idOrPath);
-    return fromModelPath(voicesDirectory() + QLatin1Char('/') + idOrPath + QStringLiteral(".onnx"));
+    return fromModelPath(directory + QLatin1Char('/') + idOrPath + QStringLiteral(".onnx"));
 }
 
 VoiceInfo VoiceLibrary::fromModelPath(const QString &modelPath)
@@ -56,7 +56,26 @@ QString VoiceLibrary::defaultVoiceId(const QString &language)
 {
     if (language == QLatin1String("fi"))
         return QStringLiteral("fi_FI-harri-medium");
-    return QStringLiteral("en_US-lessac-medium");
+    return QStringLiteral("en_US-ljspeech-medium");
+}
+
+VoiceInfo VoiceLibrary::voiceFor(const QString &language, const QString &preferredId,
+                                 const QString &directory)
+{
+    for (const QString &id : {preferredId, defaultVoiceId(language)}) {
+        if (id.isEmpty())
+            continue;
+        const VoiceInfo voice = find(id, directory);
+        if (voice.isValid() && voice.language == language)
+            return voice;
+    }
+
+    const QList<VoiceInfo> installed = installedVoices(directory);
+    for (const VoiceInfo &candidate : installed) {
+        if (candidate.language == language)
+            return candidate;
+    }
+    return VoiceInfo();
 }
 
 } // namespace lukija

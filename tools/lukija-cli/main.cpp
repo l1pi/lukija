@@ -109,10 +109,11 @@ int listVoices()
 int speak(const ReadingDocument &document, const QCommandLineParser &parser)
 {
 #ifdef LUKIJA_HAVE_PIPER
-    const QString voiceName = parser.isSet(QStringLiteral("voice"))
-                                  ? parser.value(QStringLiteral("voice"))
-                                  : VoiceLibrary::defaultVoiceId(document.lang);
-    const VoiceInfo voice = VoiceLibrary::find(voiceName);
+    const bool chosen = parser.isSet(QStringLiteral("voice"));
+    const QString voiceName = chosen ? parser.value(QStringLiteral("voice"))
+                                     : VoiceLibrary::defaultVoiceId(document.lang);
+    const VoiceInfo voice = chosen ? VoiceLibrary::find(voiceName)
+                                   : VoiceLibrary::voiceFor(document.lang);
     if (!voice.isValid())
         return fail(QStringLiteral("voice '%1' not found in %2\nDownload it with: tools/fetch-voice.sh %1")
                         .arg(voiceName, VoiceLibrary::voicesDirectory()));

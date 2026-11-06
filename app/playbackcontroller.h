@@ -57,6 +57,9 @@ public:
     // voice goes back to choosing by language.
     void setVoice(const VoiceInfo &voice);
 
+    // The setting that holds the user's voice for a language.
+    static QString voiceSettingKey(const QString &language);
+
     QString errorString() const { return m_errorString; }
 
     // Totals for the real-time factor: synthesis time and audio produced.
@@ -78,6 +81,9 @@ public slots:
     // playing in between, or waiting longer than ResumeWithinMs, cancels that.
     void interrupt();
     void endInterruption();
+
+    // Voices were installed or removed, or the user chose another one.
+    void reloadVoices();
 
 signals:
     void playingChanged();
@@ -104,6 +110,7 @@ private:
     void setError(const QString &error);
     void updateBuffering();
     VoiceInfo voiceFor(const Sentence &sentence);
+    static VoiceInfo chooseVoice(const QString &language);
 
     std::shared_ptr<const ReadingDocument> m_document;
     SynthesisQueue m_queue;

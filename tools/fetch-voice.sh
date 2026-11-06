@@ -2,7 +2,7 @@
 # Downloads Piper voices from huggingface.co/rhasspy/piper-voices into the
 # directory where Lukija looks for them.
 #
-#   tools/fetch-voice.sh [voice-id...]   (default: fi_FI-harri-medium en_US-lessac-medium)
+#   tools/fetch-voice.sh [voice-id...]   (default: fi_FI-harri-medium en_US-ljspeech-medium)
 #
 # Voice ids are listed at https://huggingface.co/rhasspy/piper-voices
 set -eu
@@ -10,7 +10,7 @@ set -eu
 dest="${XDG_DATA_HOME:-$HOME/.local/share}/io.github.l1pi/harbour-lukija/voices"
 base="https://huggingface.co/rhasspy/piper-voices/resolve/main"
 
-[ $# -eq 0 ] && set -- fi_FI-harri-medium en_US-lessac-medium
+[ $# -eq 0 ] && set -- fi_FI-harri-medium en_US-ljspeech-medium
 mkdir -p "$dest"
 
 for id in "$@"; do

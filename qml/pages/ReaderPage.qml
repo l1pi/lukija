@@ -206,6 +206,13 @@ Page {
                 font.pixelSize: Theme.fontSizeExtraSmall
                 color: Theme.errorColor
             }
+
+            Button {
+                anchors.horizontalCenter: parent.horizontalCenter
+                visible: voices.installedCount === 0
+                text: qsTr("Download voices")
+                onClicked: pageStack.push(Qt.resolvedUrl("VoicesPage.qml"))
+            }
         }
     }
 }

@@ -24,11 +24,38 @@ Page {
         anchors.fill: parent
         model: library
 
-        header: PageHeader {
-            title: "Lukija"
+        header: Column {
+            width: list.width
+
+            PageHeader {
+                title: "Lukija"
+            }
+
+            // A new user has no voices: nothing can be read without one.
+            BackgroundItem {
+                width: parent.width
+                height: noVoices.height + 2 * Theme.paddingMedium
+                visible: voices.installedCount === 0
+                onClicked: pageStack.push(Qt.resolvedUrl("VoicesPage.qml"))
+
+                Label {
+                    id: noVoices
+
+                    x: Theme.horizontalPageMargin
+                    y: Theme.paddingMedium
+                    width: parent.width - 2 * x
+                    wrapMode: Text.Wrap
+                    color: Theme.highlightColor
+                    text: qsTr("Lukija needs a voice to read with. Tap here to download one.")
+                }
+            }
         }
 
         PullDownMenu {
+            MenuItem {
+                text: qsTr("Voices")
+                onClicked: pageStack.push(Qt.resolvedUrl("VoicesPage.qml"))
+            }
             MenuItem {
                 text: qsTr("Open PDF")
                 onClicked: pageStack.push(filePicker)

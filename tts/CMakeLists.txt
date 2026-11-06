@@ -1,6 +1,7 @@
 add_library(lukija-tts STATIC
     ttsengine.h
     voicelibrary.h voicelibrary.cpp
+    voicecatalog.h voicecatalog.cpp
     synthesisqueue.h synthesisqueue.cpp
 )
 target_include_directories(lukija-tts PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

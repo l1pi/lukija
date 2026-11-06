@@ -22,9 +22,9 @@ ApplicationWindow {
     readonly property bool audioActive: reader.player.playing || reader.player.interrupted
 
     // Without this the phone suspends when the screen goes off, and synthesis
-    // and playback stop with it.
+    // and playback, or a voice download, stop with it.
     KeepAlive {
-        enabled: app.audioActive
+        enabled: app.audioActive || voices.busy
     }
 
     // The audio policy. Other audio takes the resource for a while: calls, and

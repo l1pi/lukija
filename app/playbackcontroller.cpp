@@ -231,8 +231,7 @@ void PlaybackController::requestMore()
     const Sentence &sentence = m_document->sentences[size_t(m_nextRequest)];
     const VoiceInfo voice = voiceFor(sentence);
     if (!voice.isValid()) {
-        setError(tr("No voice installed for this language. Put Piper voice files (.onnx and "
-                    ".onnx.json) in %1").arg(VoiceLibrary::voicesDirectory()));
+        setError(tr("No voices installed"));
         pause();
         return;
     }
@@ -344,28 +343,42 @@ VoiceInfo PlaybackController::voiceFor(const Sentence &sentence)
     if (cached != m_voices.constEnd())
         return cached.value();
 
-    // The user's choice, then the default voice, then any voice for the
-    // language, then any voice at all.
-    VoiceInfo voice;
-    const QString chosen = AppSettings().value(QStringLiteral("voices/") + language).toString();
-    if (!chosen.isEmpty())
-        voice = VoiceLibrary::find(chosen);
-    if (!voice.isValid())
-        voice = VoiceLibrary::find(VoiceLibrary::defaultVoiceId(language));
-    if (!voice.isValid()) {
-        const QList<VoiceInfo> installed = VoiceLibrary::installedVoices();
-        for (const VoiceInfo &candidate : installed) {
-            if (candidate.language == language) {
-                voice = candidate;
-                break;
-            }
-        }
-        if (!voice.isValid() && !installed.isEmpty())
-            voice = installed.first();
-    }
+    const VoiceInfo voice = chooseVoice(language);
     if (voice.isValid())
         m_voices.insert(language, voice);
     return voice;
+}
+
+VoiceInfo PlaybackController::chooseVoice(const QString &language)
+{
+    // A voice for the language, else any voice: an English abstract in a
+    // Finnish paper is better read with a Finnish voice than not at all.
+    VoiceInfo voice = VoiceLibrary::voiceFor(language, AppSettings().value(voiceSettingKey(language)).toString());
+    if (!voice.isValid()) {
+        const QList<VoiceInfo> installed = VoiceLibrary::installedVoices();
+        if (!installed.isEmpty())
+            voice = installed.first();
+    }
+    return voice;
+}
+
+QString PlaybackController::voiceSettingKey(const QString &language)
+{
+    return QStringLiteral("voices/") + language;
+}
+
+void PlaybackController::reloadVoices()
+{
+    // Start over only if a voice in use changes, e.g. not when another
+    // language's voice finishes downloading during playback.
+    bool changed = false;
+    for (auto it = m_voices.constBegin(); it != m_voices.constEnd(); ++it) {
+        if (chooseVoice(it.key()).modelPath != it.value().modelPath)
+            changed = true;
+    }
+    m_voices.clear();
+    if (changed && m_playing && !m_voice.isValid())
+        restartAt(m_current);
 }
 
 } // namespace lukija
