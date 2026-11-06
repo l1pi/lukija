@@ -27,7 +27,7 @@ public:
 
     // onnxruntime threads for voices loaded from now on ($LUKIJA_PIPER_THREADS,
     // read by our patched libpiper). The default is 2: on the Jolla Phone that
-    // nearly halves synthesis time for 12% more CPU time (docs/spikes.md).
+    // nearly halves synthesis time for 12% more CPU time.
     static void setThreadCount(int threads);
     static constexpr int DefaultThreadCount = 2;
 

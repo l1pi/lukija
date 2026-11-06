@@ -1,0 +1,12 @@
+* Fri Nov 06 2026 l1pi <58395528+l1pi@users.noreply.github.com> - 0.1.0
+- First public release.
+- Reads PDF files aloud with offline Piper voices, in Finnish and English.
+- Voices are downloaded in the app: Harri (Finnish), and LJ Speech,
+  Kristin, Norman and Cori (English).
+- Remembers where you stopped in each document, and shows the progress in
+  the library.
+- Keeps reading with the screen off. Controls on the lock screen, the cover
+  and headset or car buttons.
+- Pauses for calls and when headphones or Bluetooth audio disconnect, and
+  carries on after a short interruption such as a notification sound.
+- Speed from 0.5x to 2x. Tap a sentence to read from there.

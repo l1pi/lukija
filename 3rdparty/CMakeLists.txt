@@ -2,7 +2,7 @@
 # statically into it and a prebuilt onnxruntime next to it.
 #
 # The archives are downloaded by default. Builds without network access
-# (OBS) pass local copies, e.g. -DLUKIJA_PIPER_URL=/path/to/v1.8.0.tar.gz; the
+# pass local copies, e.g. -DLUKIJA_PIPER_URL=/path/to/v1.8.0.tar.gz; the
 # checksums still apply. Archive timestamps aren't restored on extraction: the
 # Sailfish SDK builds in a VirtualBox shared folder, which can't set the times
 # of symlinks.
@@ -136,3 +136,14 @@ endforeach()
 install(FILES ${espeak_files} DESTINATION ${LUKIJA_DATADIR}/espeak-ng-data)
 install(DIRECTORY ${espeak_data}/lang ${espeak_data}/voices
     DESTINATION ${LUKIJA_DATADIR}/espeak-ng-data)
+
+# Their licences, which go with the binaries.
+set(licenses_dir ${LUKIJA_DATADIR}/licenses)
+install(FILES ${ONNXRUNTIME_DIR}/LICENSE ${ONNXRUNTIME_DIR}/ThirdPartyNotices.txt
+    DESTINATION ${licenses_dir}/onnxruntime)
+install(FILES ${CMAKE_BINARY_DIR}/3rdparty/piper/src/piper_external/COPYING
+    DESTINATION ${licenses_dir}/piper)
+set(espeak_source ${PIPER_BINARY_DIR}/espeak_ng/src/espeak_ng_external)
+install(FILES ${espeak_source}/COPYING ${espeak_source}/COPYING.APACHE
+              ${espeak_source}/COPYING.BSD2 ${espeak_source}/COPYING.UCD
+    DESTINATION ${licenses_dir}/espeak-ng)

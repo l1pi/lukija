@@ -14,7 +14,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(SAILFISHAPP QUIET IMPORTED_TARGET sailfishapp)
 
 option(LUKIJA_WITH_PIPER "Build the Piper TTS engine (downloads and builds libpiper)" ON)
-option(LUKIJA_BUILD_TESTS "Build the unit and corpus tests" ON)
+option(LUKIJA_BUILD_TESTS "Build the tests, if tests/ is there" ON)
 option(LUKIJA_BUILD_APP "Build the Sailfish OS app (needs libsailfishapp)" ${SAILFISHAPP_FOUND})
 
 # Sailfish OS ships Qt 5.6: code must not use Qt APIs newer than that,
@@ -44,7 +44,7 @@ add_subdirectory(tts)
 add_subdirectory(app)
 add_subdirectory(tools/lukija-cli)
 
-if(LUKIJA_BUILD_TESTS)
+if(LUKIJA_BUILD_TESTS AND EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests/CMakeLists.txt)
     enable_testing()
     add_subdirectory(tests)
 endif()

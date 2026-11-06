@@ -34,7 +34,8 @@ QUrl VoiceCatalog::defaultBaseUrl()
 
 QList<CatalogVoice> VoiceCatalog::voices()
 {
-    // Medium quality: the high voices are too slow on a phone (docs/spikes.md).
+    // Medium quality: the high voices are too slow on a phone, at about 1.9
+    // times real time on one thread of the Jolla Phone.
     // Only voices trained on freely licensed recordings: en_US-lessac, for
     // one, comes from recordings licensed for research only.
     return {

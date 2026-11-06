@@ -1,7 +1,7 @@
 # Patches libpiper 1.8.0. Run as PATCH_COMMAND with -DSOURCE_DIR=<piper1-gpl source>.
 #
-# Build without git or network access (Sailfish SDK targets have no git, OBS
-# builds have no network):
+# Build without git or network access (Sailfish SDK targets have no git, and
+# some build hosts have no network):
 #   - espeak-ng comes from ${LUKIJA_ESPEAK_URL}, which may be a local file.
 #   - espeak-ng's own git fetch of sonic is pointed at ${LUKIJA_SONIC_DIR}.
 #

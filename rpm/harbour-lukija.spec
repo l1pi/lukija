@@ -1,10 +1,19 @@
 Name:       harbour-lukija
 Summary:    Reads PDF files aloud
 Version:    0.1.0
-Release:    3
+Release:    5
 License:    GPL-3.0-or-later
 URL:        https://github.com/l1pi/lukija
 Source0:    %{name}-%{version}.tar.bz2
+# Third-party sources, pinned by checksum in 3rdparty/CMakeLists.txt. The
+# build downloads them unless they're here, for builds without network
+# access (rpm/fetch-sources.sh).
+Source1:    https://github.com/OHF-Voice/piper1-gpl/archive/refs/tags/v1.8.0.tar.gz#/piper1-gpl-1.8.0.tar.gz
+Source2:    https://github.com/espeak-ng/espeak-ng/archive/212928b394a96e8fd2096616bfd54e17845c48f6.tar.gz#/espeak-ng-212928b394a9.tar.gz
+Source3:    https://github.com/waywardgeek/sonic/archive/fbf75c3d6d846bad3bb3d456cbc5d07d9fd8c104.tar.gz#/sonic-fbf75c3d6d84.tar.gz
+Source4:    https://github.com/microsoft/onnxruntime/releases/download/v1.22.0/onnxruntime-linux-aarch64-1.22.0.tgz
+# The bundled onnxruntime is its official prebuilt aarch64 release.
+ExclusiveArch: aarch64
 
 # libpiper and onnxruntime are bundled privately under %%{_datadir}/%%{name}/lib.
 %global __provides_exclude_from ^%{_datadir}/%{name}/lib/.*$
@@ -28,6 +37,7 @@ BuildRequires:  pkgconfig(Qt5Multimedia)
 BuildRequires:  pkgconfig(Qt5Sql)
 BuildRequires:  pkgconfig(Qt5Concurrent)
 BuildRequires:  pkgconfig(Qt5DBus)
+BuildRequires:  pkgconfig(Qt5Network)
 BuildRequires:  pkgconfig(poppler-qt5)
 # For %%check: the tests run on Qt 5.6, catching use of newer Qt APIs.
 BuildRequires:  pkgconfig(Qt5Test)
@@ -35,8 +45,12 @@ BuildRequires:  qt5-plugin-platform-minimal
 BuildRequires:  sailfish-fonts
 
 %description
-Lukija reads PDF files aloud with an offline neural voice (Piper). It is made
-for ebooks and academic articles in Finnish and English.
+Lukija reads PDF files aloud with offline neural voices (Piper). It is made
+for ebooks and academic articles in Finnish and English. It remembers where
+you stopped in each document, and keeps reading with the screen off, with
+controls on the lock screen and on headsets.
+
+Voices are downloaded in the app, about 60 MB each.
 
 %package cli
 Summary:    Command-line tool for Lukija's text pipeline and voices
@@ -50,8 +64,12 @@ analysis, and reads PDFs aloud or into a WAV file. Meant for testing.
 %setup -q -n %{name}-%{version}
 
 %build
+if [ -f %{SOURCE1} ]; then
+    sources="-DLUKIJA_PIPER_URL=%{SOURCE1} -DLUKIJA_ESPEAK_URL=%{SOURCE2}
+             -DLUKIJA_SONIC_URL=%{SOURCE3} -DLUKIJA_ONNXRUNTIME_URL=%{SOURCE4}"
+fi
 %cmake -DCMAKE_BUILD_TYPE=Release -DLUKIJA_BUILD_APP=ON -DLUKIJA_BUILD_TESTS=ON \
-       -DLUKIJA_TEST_QPA_PLATFORM=minimal:enable_fonts
+       -DLUKIJA_TEST_QPA_PLATFORM=minimal:enable_fonts $sources
 %make_build
 
 %check

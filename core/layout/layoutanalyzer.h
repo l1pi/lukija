@@ -9,7 +9,7 @@ namespace lukija {
 //
 // Single-column for now: it keeps Poppler's reading order, which already
 // handles many two-column layouts. Own column detection, headers/footers,
-// footnotes etc. come later (see PLAN.md, phase 3).
+// footnotes etc. come later.
 class LayoutAnalyzer
 {
 public:
