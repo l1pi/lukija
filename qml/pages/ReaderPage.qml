@@ -10,7 +10,38 @@ Page {
 
     // Jumps there, instead of scrolling through everything before it.
     function showCurrentSentence() {
+        scroll.stop()
         list.positionViewAtIndex(player.currentSentence, ListView.Center)
+    }
+
+    // Keeps the sentence being read in view, but leaves the text where it is
+    // while that sentence is fully visible, e.g. one the user just tapped.
+    // Otherwise it goes about a fifth of the way down: smoothly from nearby,
+    // and at once from far away.
+    function followCurrentSentence() {
+        if (!ready || list.moving || list.count === 0)
+            return
+        var index = player.currentSentence
+        var x = list.width / 2
+        var top = list.indexAt(x, list.contentY + 1)
+        var bottom = list.indexAt(x, list.contentY + list.height - 1)
+        if (bottom < 0)
+            bottom = list.count  // past the last sentence
+        if (index > top && index < bottom)
+            return
+
+        var from = list.contentY
+        scroll.stop()
+        list.positionViewAtIndex(index, ListView.Beginning)
+        var end = list.originY + Math.max(0, list.contentHeight - list.height)
+        var to = Math.max(list.originY, Math.min(end, list.contentY - list.height * 0.2))
+        if (Math.abs(to - from) > list.height * 2) {
+            list.contentY = to
+            return
+        }
+        list.contentY = from
+        scroll.to = to
+        scroll.start()
     }
 
     allowedOrientations: Orientation.All
@@ -27,6 +58,20 @@ Page {
         onOpened: page.showCurrentSentence()
     }
 
+    Connections {
+        target: player
+        onCurrentSentenceChanged: page.followCurrentSentence()
+    }
+
+    NumberAnimation {
+        id: scroll
+
+        target: list
+        property: "contentY"
+        duration: 500
+        easing.type: Easing.InOutQuad
+    }
+
     SilicaListView {
         id: list
 
@@ -35,17 +80,11 @@ Page {
             bottomMargin: panel.visibleSize
         }
         clip: true
-        // Always this model, empty until the document loads: assigning a model
-        // later would reset currentIndex to 0 and leave the binding below stale.
+        // Always this model, empty until the document loads.
         model: reader.sentences
 
-        // Keep the sentence being read in view. The list follows playback
-        // except while the user is scrolling.
-        currentIndex: player.currentSentence
-        highlightRangeMode: list.moving ? ListView.NoHighlightRange : ListView.ApplyRange
-        preferredHighlightBegin: height * 0.2
-        preferredHighlightEnd: height * 0.6
-        highlightMoveDuration: 500
+        // The user takes over.
+        onMovementStarted: scroll.stop()
 
         // The panel below opens after the list has been positioned, and could
         // cover the last sentences. Turning the phone changes the height too.
