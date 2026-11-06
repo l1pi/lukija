@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     LibraryModel libraryModel(&library);
     Reader reader(&library);
     QObject::connect(&reader, &Reader::opened, &libraryModel, &LibraryModel::refresh);
+    QObject::connect(&reader, &Reader::positionSaved, &libraryModel, &LibraryModel::setPosition);
     QObject::connect(app.data(), &QCoreApplication::aboutToQuit, &reader, &Reader::savePosition);
 
     // Stop when headphones or Bluetooth audio go away, rather than carrying on

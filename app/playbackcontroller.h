@@ -23,6 +23,7 @@ class PlaybackController : public QObject
     Q_OBJECT
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(bool buffering READ isBuffering NOTIFY bufferingChanged)
+    Q_PROPERTY(bool interrupted READ isInterrupted NOTIFY interruptedChanged)
     Q_PROPERTY(int currentSentence READ currentSentence NOTIFY currentSentenceChanged)
     Q_PROPERTY(int sentenceCount READ sentenceCount NOTIFY documentChanged)
     Q_PROPERTY(qreal speed READ speed WRITE setSpeed NOTIFY speedChanged)
@@ -31,6 +32,8 @@ class PlaybackController : public QObject
 public:
     static constexpr qreal MinimumSpeed = 0.5;
     static constexpr qreal MaximumSpeed = 3.0;
+    // How long playback waits to resume after an interruption.
+    static constexpr int ResumeWithinMs = 30000;
 
     explicit PlaybackController(QObject *parent = nullptr);
     PlaybackController(EngineFactory engineFactory, QObject *parent);
@@ -42,6 +45,9 @@ public:
 
     bool isPlaying() const { return m_playing; }
     bool isBuffering() const { return m_buffering; }
+    // Paused by interrupt(), and will resume if endInterruption() follows in time.
+    bool isInterrupted() const { return m_interrupted; }
+    void setResumeWithin(int ms) { m_interruption.setInterval(ms); }
     int currentSentence() const { return m_current; }
     int sentenceCount() const;
     qreal speed() const { return m_speed; }
@@ -67,9 +73,16 @@ public slots:
     void nextParagraph();
     void previousParagraph();
 
+    // Other audio takes over for a moment, such as a call or an Android app's
+    // notification sound: pauses, and endInterruption() resumes. Pausing or
+    // playing in between, or waiting longer than ResumeWithinMs, cancels that.
+    void interrupt();
+    void endInterruption();
+
 signals:
     void playingChanged();
     void bufferingChanged();
+    void interruptedChanged();
     void currentSentenceChanged();
     void documentChanged();
     void speedChanged();
@@ -84,7 +97,9 @@ private:
     void onFailed(int index, const QString &error);
     void onSinkSentence(int index);
     void onSinkFinished();
+    void suspend();
     void setPlaying(bool playing);
+    void setInterrupted(bool interrupted);
     void setCurrent(int sentence);
     void setError(const QString &error);
     void updateBuffering();
@@ -94,6 +109,7 @@ private:
     SynthesisQueue m_queue;
     AudioSink m_sink;
     QTimer m_refill;
+    QTimer m_interruption;
     QHash<QString, VoiceInfo> m_voices;  // by language
     VoiceInfo m_voice;                   // set by setVoice()
 
@@ -102,6 +118,7 @@ private:
     int m_nextEnqueue = 0;  // next sentence the sink expects; results arrive in order
     bool m_playing = false;
     bool m_buffering = false;
+    bool m_interrupted = false;
     bool m_streaming = false;  // the sink holds audio from m_current onwards
     bool m_atEnd = false;
     qreal m_speed = 1.0;

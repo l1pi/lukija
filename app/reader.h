@@ -52,6 +52,7 @@ signals:
     void statusChanged();
     void documentChanged();
     void opened();  // a document was added to the library or reopened
+    void positionSaved(int documentId, int sentenceIndex);
 
 private:
     struct LoadResult {

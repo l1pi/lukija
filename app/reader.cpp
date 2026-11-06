@@ -99,7 +99,9 @@ void Reader::savePosition()
     m_saveTimer.stop();
     if (!m_document || m_documentId < 0)
         return;
-    m_library->savePosition(m_documentId, Library::positionOf(*m_document, m_player.currentSentence()));
+    const int sentence = m_player.currentSentence();
+    m_library->savePosition(m_documentId, Library::positionOf(*m_document, sentence));
+    emit positionSaved(m_documentId, sentence);
 }
 
 Reader::LoadResult Reader::load(const QString &path)

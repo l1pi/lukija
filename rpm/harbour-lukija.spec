@@ -1,7 +1,7 @@
 Name:       harbour-lukija
 Summary:    Reads PDF files aloud
 Version:    0.1.0
-Release:    2
+Release:    3
 License:    GPL-3.0-or-later
 URL:        https://github.com/l1pi/lukija
 Source0:    %{name}-%{version}.tar.bz2

@@ -18,23 +18,30 @@ ApplicationWindow {
     cover: Qt.resolvedUrl("cover/CoverPage.qml")
     allowedOrientations: defaultAllowedOrientations
 
+    // Playing, or paused for other audio and about to resume.
+    readonly property bool audioActive: reader.player.playing || reader.player.interrupted
+
     // Without this the phone suspends when the screen goes off, and synthesis
     // and playback stop with it.
     KeepAlive {
-        enabled: reader.player.playing
+        enabled: app.audioActive
     }
 
-    // The audio policy: playback pauses for calls and other higher-priority audio.
+    // The audio policy. Other audio takes the resource for a while: calls, and
+    // also Android apps, whose sounds (WhatsApp's "message sent", say) count as
+    // a player like this app. Playback pauses, keeps its claim, and resumes
+    // when the resource comes back soon enough.
     Permissions {
-        enabled: reader.player.playing
-        autoRelease: true
+        enabled: app.audioActive
+        autoRelease: false  // keep the claim when lost, so "granted" follows
         applicationClass: "player"
 
         Resource {
             type: Resource.AudioPlayback
         }
 
-        onLost: reader.player.pause()
+        onGranted: reader.player.endInterruption()
+        onLost: reader.player.interrupt()
         onDenied: reader.player.pause()
     }
 

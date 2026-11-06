@@ -67,6 +67,21 @@ void LibraryModel::refresh()
         emit countChanged();
 }
 
+void LibraryModel::setPosition(int documentId, int sentenceIndex)
+{
+    for (int row = 0; row < m_documents.size(); ++row) {
+        DocumentRecord &document = m_documents[row];
+        if (document.id != documentId)
+            continue;
+        if (document.sentenceIndex != sentenceIndex) {
+            document.sentenceIndex = sentenceIndex;
+            const QModelIndex changed = index(row);
+            emit dataChanged(changed, changed, {ProgressRole});
+        }
+        return;
+    }
+}
+
 void LibraryModel::remove(int documentId)
 {
     for (int row = 0; row < m_documents.size(); ++row) {

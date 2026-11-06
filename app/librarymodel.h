@@ -32,6 +32,11 @@ public:
     Q_INVOKABLE void refresh();
     Q_INVOKABLE void remove(int documentId);
 
+public slots:
+    // The document's reading position changed: updates its progress in place,
+    // rather than resetting the list under the user.
+    void setPosition(int documentId, int sentenceIndex);
+
 signals:
     void countChanged();
 

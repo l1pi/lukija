@@ -34,6 +34,10 @@ PlaybackController::PlaybackController(EngineFactory engineFactory, QObject *par
 
     m_refill.setInterval(500);
     connect(&m_refill, &QTimer::timeout, this, &PlaybackController::requestMore);
+
+    m_interruption.setSingleShot(true);
+    m_interruption.setInterval(ResumeWithinMs);
+    connect(&m_interruption, &QTimer::timeout, this, [this]() { setInterrupted(false); });
 }
 
 PlaybackController::~PlaybackController()
@@ -45,6 +49,7 @@ void PlaybackController::setDocument(std::shared_ptr<const ReadingDocument> docu
                                      int startSentence)
 {
     stopAudio();
+    setInterrupted(false);
     setPlaying(false);
     m_document = std::move(document);
     m_voices.clear();
@@ -94,6 +99,7 @@ void PlaybackController::play()
     }
     setError(QString());
     setPlaying(true);
+    setInterrupted(false);  // after playing: never idle in between
     if (m_streaming && m_sink.isPaused())
         m_sink.resume();
     else
@@ -103,12 +109,8 @@ void PlaybackController::play()
 
 void PlaybackController::pause()
 {
-    if (!m_playing)
-        return;
-    m_sink.pause();
-    m_refill.stop();
-    setPlaying(false);
-    updateBuffering();
+    setInterrupted(false);
+    suspend();
 }
 
 void PlaybackController::toggle()
@@ -169,6 +171,22 @@ void PlaybackController::previousParagraph()
     if (start == m_current && start > 0)
         start = paragraphStart(start - 1);
     seek(start);
+}
+
+void PlaybackController::interrupt()
+{
+    if (!m_playing)
+        return;
+    // Interrupted before it stops playing: a binding to "playing ||
+    // interrupted", such as the audio resource's, never sees both false.
+    setInterrupted(true);
+    suspend();
+}
+
+void PlaybackController::endInterruption()
+{
+    if (m_interrupted)
+        play();
 }
 
 void PlaybackController::restartAt(int sentence)
@@ -257,12 +275,34 @@ void PlaybackController::onSinkFinished()
     emit finished();
 }
 
+void PlaybackController::suspend()
+{
+    if (!m_playing)
+        return;
+    m_sink.pause();
+    m_refill.stop();
+    setPlaying(false);
+    updateBuffering();
+}
+
 void PlaybackController::setPlaying(bool playing)
 {
     if (m_playing == playing)
         return;
     m_playing = playing;
     emit playingChanged();
+}
+
+void PlaybackController::setInterrupted(bool interrupted)
+{
+    if (interrupted)
+        m_interruption.start();
+    else
+        m_interruption.stop();
+    if (m_interrupted == interrupted)
+        return;
+    m_interrupted = interrupted;
+    emit interruptedChanged();
 }
 
 void PlaybackController::setCurrent(int sentence)
