@@ -370,15 +370,30 @@ QString PlaybackController::voiceSettingKey(const QString &language)
 void PlaybackController::reloadVoices()
 {
     // Start over only if a voice in use changes, e.g. not when another
-    // language's voice finishes downloading during playback.
+    // language's voice finishes downloading during playback. The cache keeps
+    // the voices in use, so a later change is noticed too.
     bool changed = false;
-    for (auto it = m_voices.constBegin(); it != m_voices.constEnd(); ++it) {
-        if (chooseVoice(it.key()).modelPath != it.value().modelPath)
+    for (auto it = m_voices.begin(); it != m_voices.end();) {
+        const VoiceInfo voice = chooseVoice(it.key());
+        if (voice.modelPath != it.value().modelPath)
             changed = true;
+        if (voice.isValid()) {
+            it.value() = voice;
+            ++it;
+        } else {
+            it = m_voices.erase(it);
+        }
     }
-    m_voices.clear();
-    if (changed && m_playing && !m_voice.isValid())
+    if (!changed || m_voice.isValid())
+        return;
+
+    // Audio already synthesised has the old voice: start over from the
+    // current sentence, now or when playing continues after a pause or an
+    // interruption.
+    if (m_playing)
         restartAt(m_current);
+    else
+        stopAudio();
 }
 
 } // namespace lukija
